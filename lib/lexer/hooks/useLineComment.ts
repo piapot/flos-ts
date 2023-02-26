@@ -3,8 +3,11 @@ import { type Token, TokenKind, createToken, createTokenSpan } from '~lib/token'
 import { isLineFeed, peekChar } from '~lib/lexer/utils'
 
 const useLineComment = (source: Source, pos: number, line: number): [Token, number] => {
+  const line_comment_mark = source.raw.slice(pos, pos + 2)
+  if (line_comment_mark !== '//') throw new Error(`Uncaught SyntaxError: Unexpected token '${line_comment_mark}'`)
   const begin = pos
-  let end = begin
+  pos += 2
+  let end = pos
   const chars: string[] = []
 
   const myTokenizeLineComment = (pos: number): number => {
@@ -31,13 +34,13 @@ if (import.meta.vitest) {
   const { it, expect } = import.meta.vitest
 
   it.concurrent('test useLineComment', () => {
-    const raw = 'This is a line comment\n'
+    const raw = '// This is a line comment\n'
     const source = createSource(raw)
     const [token, pos] = useLineComment(source, 0, 1)
     const expect_pos = raw.length - 1
     const expect_token = createToken({
       kind: TokenKind.LineComment,
-      value: 'This is a line comment',
+      value: ' This is a line comment',
       span: createTokenSpan({ begin: 0, end: expect_pos, lines: [1] }),
     })
     expect(pos).toBe(expect_pos)
