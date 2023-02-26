@@ -2,30 +2,37 @@ import { type Source, createSource } from '~lib/lexer/utils'
 import { type Token, TokenKind, createToken, createTokenSpan } from '~lib/token'
 import { isLineFeed, peekChar } from '~lib/lexer/utils'
 
-const useLineComment = (source: Source, pos: number, line: number): [Token, number] => {
-  const line_comment_mark = source.raw.slice(pos, pos + 2)
+type Props = Readonly<{
+  source: Source
+  pos: number
+  line: number
+}>
+
+const useLineComment = (props: Props): [Token, number] => {
+  const line_comment_mark = props.source.raw.slice(props.pos, props.pos + 2)
   if (line_comment_mark !== '//') throw new Error(`Uncaught SyntaxError: Unexpected token '${line_comment_mark}'`)
-  const begin = pos
-  pos += 2
+
+  const begin = props.pos
+  let pos = props.pos + 2
   let end = pos
   const chars: string[] = []
 
-  const myTokenizeLineComment = (pos: number): number => {
-    const char = peekChar(source, pos)
-    if (char === null) return pos
-    else if (isLineFeed(char)) return pos
+  const _tokenizeLineComment = (_pos: number): number => {
+    const char = peekChar({ source: props.source, pos: _pos })
+    if (char === null) return _pos
+    else if (isLineFeed(char)) return _pos
     end += 1
     chars.push(char)
-    return myTokenizeLineComment(pos + 1)
+    return _tokenizeLineComment(_pos + 1)
   }
-  const my_pos = myTokenizeLineComment(pos)
+  pos = _tokenizeLineComment(pos)
 
   const token = createToken({
     kind: TokenKind.LineComment,
     value: chars.join(''),
-    span: createTokenSpan({ begin, end, lines: [line] }),
+    span: createTokenSpan({ begin, end, lines: [props.line] }),
   })
-  return [token, my_pos]
+  return [token, pos]
 }
 export default useLineComment
 
@@ -36,7 +43,7 @@ if (import.meta.vitest) {
   it.concurrent('test useLineComment', () => {
     const raw = '// This is a line comment\n'
     const source = createSource(raw)
-    const [token, pos] = useLineComment(source, 0, 1)
+    const [token, pos] = useLineComment({ source, pos: 0, line: 1 })
     const expect_pos = raw.length - 1
     const expect_token = createToken({
       kind: TokenKind.LineComment,
