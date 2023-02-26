@@ -1,5 +1,6 @@
 export enum TokenKind {
   Whitespace = 1,
+  LineFeed,
   LineComment,
   BlockComment,
   Identifier,

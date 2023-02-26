@@ -15,7 +15,11 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "skipLibCheck": true,
-    "types": ["vitest/importMeta"]
+    "types": ["vitest/importMeta"],
+    "baseUrl": ".",
+    "paths": {
+      "~lib/*": ["./lib/*"]
+    }
   },
   "include": ["src", "lib"]
 }
