@@ -1,14 +1,15 @@
 import { type Source, createSource } from '~lib/lexer/utils'
 
-type Props = Readonly<{
+type Context = Readonly<{
   source: Source
   pos: number
   length: number
 }>
 
-const peekSlice = (props: Props): string | null => {
-  if (props.pos >= props.source.length) return null
-  return props.source.raw.slice(props.pos, props.pos + props.length)
+const peekSlice = (context: Context): string | null => {
+  const { source, pos, length } = context
+  if (pos >= source.length) return null
+  return source.raw.slice(pos, pos + length)
 }
 export default peekSlice
 

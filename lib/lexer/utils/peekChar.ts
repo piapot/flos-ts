@@ -1,13 +1,14 @@
 import { type Source, createSource } from '~lib/lexer/utils'
 
-type Props = Readonly<{
+type Context = Readonly<{
   source: Source
   pos: number
 }>
 
-const peekChar = (props: Props): string | null => {
-  if (props.pos >= props.source.length) return null
-  return props.source.raw[props.pos]
+const peekChar = (context: Context): string | null => {
+  const { source, pos } = context
+  if (pos >= source.length) return null
+  return source.raw[pos]
 }
 export default peekChar
 

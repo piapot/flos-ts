@@ -2,27 +2,27 @@ import { type Source, createSource } from '~lib/lexer/utils'
 import { type Token, TokenKind, createToken, createTokenSpan } from '~lib/token'
 import { isLineFeed, peekChar, peekSlice } from '~lib/lexer/utils'
 
-type Props = Readonly<{
+type Context = Readonly<{
   source: Source
   pos: number
   line: number
 }>
 
-const useBlockComment = (props: Props): [Token, number] => {
-  const block_comment_mark = peekSlice({ source: props.source, pos: props.pos, length: 2 })
-  if (block_comment_mark !== '/*') throw new Error(`Uncaught SyntaxError: Unexpected token '${block_comment_mark}'`)
+const useBlockComment = (context: Context): [Token, number] => {
+  const start_mark = peekSlice({ source: context.source, pos: context.pos, length: 2 })
+  if (start_mark !== '/*') throw new Error(`Uncaught SyntaxError: Unexpected token '${start_mark}'`)
 
-  const begin = props.pos
-  let end = props.pos + 2
-  let line = props.line
+  const begin = context.pos
+  let end = context.pos + 2
+  let line = context.line
   const chars: string[] = []
-  const lines: number[] = [props.line]
+  const lines: number[] = [context.line]
 
   const walk = (_pos: number): number => {
-    const char = peekChar({ source: props.source, pos: _pos })
+    const char = peekChar({ source: context.source, pos: _pos })
     if (char === null) return _pos
     if (isLineFeed(char)) lines.push((line += 1))
-    if (peekSlice({ source: props.source, pos: _pos, length: 2 }) === '*/') {
+    if (peekSlice({ source: context.source, pos: _pos, length: 2 }) === '*/') {
       end += 2
       return _pos + 2
     }
@@ -31,7 +31,7 @@ const useBlockComment = (props: Props): [Token, number] => {
     return walk(_pos + 1)
   }
 
-  const pos = walk(props.pos + 2)
+  const pos = walk(context.pos + 2)
   const token = createToken({
     kind: TokenKind.BlockComment,
     value: chars.join(''),
