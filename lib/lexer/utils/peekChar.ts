@@ -6,10 +6,8 @@ type Props = Readonly<{
 }>
 
 const peekChar = (props: Props): string | null => {
-  const { source, pos } = props
-  if (pos >= source.length) return null
-  const char = source.raw[pos]
-  return char
+  if (props.pos >= props.source.length) return null
+  return props.source.raw[props.pos]
 }
 export default peekChar
 

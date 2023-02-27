@@ -1,4 +1,4 @@
-import { type Source, createSource } from '~lib/lexer/utils'
+import { type Source, createSource, peekSlice } from '~lib/lexer/utils'
 import { type Token, TokenKind, createToken, createTokenSpan } from '~lib/token'
 import { isLineFeed, peekChar } from '~lib/lexer/utils'
 
@@ -9,24 +9,23 @@ type Props = Readonly<{
 }>
 
 const useLineComment = (props: Props): [Token, number] => {
-  const line_comment_mark = props.source.raw.slice(props.pos, props.pos + 2)
-  if (line_comment_mark !== '//') throw new Error(`Uncaught SyntaxError: Unexpected token '${line_comment_mark}'`)
+  const start_mark = peekSlice({ source: props.source, pos: props.pos, length: 2 })
+  if (start_mark !== '//') throw new Error(`Uncaught SyntaxError: Unexpected token '${start_mark}'`)
 
   const begin = props.pos
-  let pos = props.pos + 2
-  let end = pos
+  let end = props.pos + 2
   const chars: string[] = []
 
-  const _tokenizeLineComment = (_pos: number): number => {
-    const char = peekChar({ source: props.source, pos: _pos })
-    if (char === null) return _pos
-    else if (isLineFeed(char)) return _pos
+  const walk = (_pos: number): number => {
+    const _char = peekChar({ source: props.source, pos: _pos })
+    if (_char === null) return _pos
+    if (isLineFeed(_char)) return _pos
     end += 1
-    chars.push(char)
-    return _tokenizeLineComment(_pos + 1)
+    chars.push(_char)
+    return walk(_pos + 1)
   }
-  pos = _tokenizeLineComment(pos)
 
+  const pos = walk(props.pos + 2)
   const token = createToken({
     kind: TokenKind.LineComment,
     value: chars.join(''),
